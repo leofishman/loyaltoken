@@ -79,9 +79,10 @@ contract LoyalToken {
   event NewUser(uint256 indexed userId, uint8 friendsQuantity);
   event TransferToFriend(address user, address _friend, uint256 points);
   event RemoveFriend(address user, address friend);
-  event CreateReward(uint256 rewardId, bytes32 name, uint256 value, bool isActive);
-  event ActiveReward(uint256 rewardId, bool isActive);
-  event UpdateReward(uint256 rewardId, uint256 value);
+  event CreateReward(uint256 indexed rewardId, bytes32 name, uint256 value, bool isActive);
+  event ActiveReward(uint256 indexed rewardId, bool indexed isActive);
+  event UpdateReward(uint256 indexed rewardId, uint256 value);
+  event RedeemReward(uint25 indexed rewardId, address loyalUser, uint256 totalSupply);
 
   constructor() public {
       owner = msg.sender;
@@ -131,6 +132,7 @@ contract LoyalToken {
     return balances[_user];
     }
 
+/*
   function newUser(address _loyalUser) public return (uint256) {
     require(loyalUsers[msg.sender].userId == 0, 'User already in the program');
 
@@ -142,7 +144,7 @@ contract LoyalToken {
       emit NewUser(loyalUser[_loyalUser].userId, loyalUser[_loyalUser].friendsQuantity);
       return userId;
     }
-
+*/
 
   function addFriend(address _friend) canAddFriend() public {
     //require newfriend is user
@@ -217,9 +219,11 @@ contract LoyalToken {
   }
 
 
-  function redeemReward(address _loyalUser, _rewardId) public {
-    //requie balance
-    //require valid reward and active
+  function redeemReward( _rewardId) public {
+    require(balances[msg.sender] >= rewards[_rewardId].value, 'Not enough points for this reward');
+    require(rewards[_rewardId].isActive === true, 'Rewards not available');
+    transferFrom(msg.sender, owner, rewards[_rewardId].value);
+    emit RedeemReward(_rewardId, msg.sender, _totalSupply);
   }
 
 }
