@@ -64,7 +64,7 @@ contract LoyalToken {
  */
 
 //rewards are composed by an index, name and token value for reedemption and a status flag.
-  struct rewards {
+  struct reward {
     uint256 rewardId;
     bytes32 name;
     uint256 value;
@@ -79,35 +79,35 @@ contract LoyalToken {
 
 // 
   uint256 _totalSupply;
-  uint256 userId;
+//  uint256 userId;
   address owner;
   uint256 constant friendAddressLockingTime = 15780; // 6 months
 
   // each user can have 2 address that can transfer his points and can change those adddress after six months
-  mapping(address => uint8) quantityFriends; //how many friends and address already have
+  mapping(address => uint256) quantityFriends; //how many friends and address already have
   mapping(address => loyalFriend[2]) loyalFriends; // friend for and address
   mapping(address => uint256) private balances;
   mapping(uint256 => reward) public rewards;
 
 
   event Transfer(address indexed from, address indexed to, uint256 value);
-  event NewUser(uint256 indexed userId, uint8 friendsQuantity);
+ // event NewUser(uint256 indexed userId, uint8 friendsQuantity);
   event TransferToFriend(address user, address _friend, uint256 points);
   event RemoveFriend(address user, address friend);
   event CreateReward(uint256 indexed rewardId, bytes32 name, uint256 value, bool isActive);
   event ActiveReward(uint256 indexed rewardId, bool indexed isActive);
   event UpdateReward(uint256 indexed rewardId, uint256 value);
-  event RedeemReward(uint25 indexed rewardId, address loyalUser, uint256 totalSupply);
+  event RedeemReward(uint256 indexed rewardId, address loyalUser, uint256 totalSupply);
 
   constructor() public {
       owner = msg.sender;
-      symbol = "LOY";
-      name = "My loyalty program with friends";
-      decimals = 18;
+      bytes32 symbol = "LOY";
+      bytes32 name = "My loyalty program with friends";
+      uint256 decimals = 18;
       _totalSupply = 1000000 * 10**uint(decimals);
       balances[owner] = _totalSupply;
-      userId = 0;
-      userId = newUser(msg.address);
+//      userId = 0;
+//      userId = newUser(msg.sender);
       emit Transfer(address(0), owner, _totalSupply);
 }
 
@@ -117,7 +117,7 @@ contract LoyalToken {
   }
 
   modifier canAddFriend() {
-    requie(quantityFriends[msg.sender] < 2, 'friends limit reached');
+    require(quantityFriends[msg.sender] < 2, 'friends limit reached');
     _;
   }
 
@@ -133,7 +133,7 @@ contract LoyalToken {
  */
   function transfer(address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
-    require(_value <= balances[msg.sender].balance);
+    require(_value <= balances[msg.sender]);
 
     balances[msg.sender] = balances[msg.sender].sub(_value);
     balances[_to] = balances[_to].add(_value);
@@ -174,30 +174,31 @@ contract LoyalToken {
 */
 
   function addFriend(address _friend) canAddFriend() public {
-    loyalFriend memroy newFriend = loyalFriend({
+    loyalFriend memory newFriend = loyalFriend({
       timestamp: now,
       friendAddress: _friend
       });
     quantityFriends[msg.sender] = quantityFriends[msg.sender].add(1);
-    loyalfriends[msg.sender][quantityFriends[msg.sender]] = newFriend;
+    loyalFriends[msg.sender][quantityFriends[msg.sender]] = newFriend;
   }
 
-  function isFriend(address _user, address _friend) public return (uint8) {
+  function isFriend(address _user, address _friend) view public returns (uint256) {
     require(quantityFriends[_user] > 0, "User has no friends");
-      for (uint8 i = 0; i < loyalFriends[_user].length; i++) {
+      for (uint256 i = 0; i < loyalFriends[_user].length; i++) {
         if (loyalFriends[_user][i].friendAddress == _friend) {
           return i;
         }
       }
+      return 0;
   }
 
   function removeFriend(address _friend) public returns (bool) {
     // require friend added longer than grace period
-    if (loyalFriends[msg.sender][1] == _friend) {
+    if (loyalFriends[msg.sender][0].friendAddress == _friend) {
       require(loyalFriends[msg.sender][1].timestamp < now.sub(friendAddressLockingTime));
-      loyalFriends[msg.sender][1] = loyalFriends[msg.sender][2];
+      loyalFriends[msg.sender][0] = loyalFriends[msg.sender][1];
       } else {
-        require(loyalFriends[msg.sender][2].timestamp < now.sub(friendAddressLockingTime));
+        require(loyalFriends[msg.sender][1].timestamp < now.sub(friendAddressLockingTime));
       }
 
     require(loyalFriends[msg.sender][isFriend(msg.sender, _friend)].timestamp < now.sub(friendAddressLockingTime));
@@ -210,12 +211,12 @@ contract LoyalToken {
 
   function trasnferToFriend(address _friend, uint256 _points) public {
     require(balances[msg.sender] >= _points, 'Not enough points to transfer');
-    require(isFriend(msg.sender, _friend), 'The address is not allowed to get points from you');
+    require(isFriend(msg.sender, _friend) > 0, 'The address is not allowed to get points from you');
     transfer(_friend, _points);
 
   }
 
-  function createReward(uint256 _rewardId, bytes32 _name, uint256 _value, bool _isActive) {
+  function createReward(uint256 _rewardId, bytes32 _name, uint256 _value, bool _isActive) public onlyOwner {
     require(rewards[_rewardId].rewardId == 0, 'Reward already exsit');
     reward memory newReward = reward({
       rewardId: _rewardId,
@@ -224,13 +225,13 @@ contract LoyalToken {
       isActive: _isActive
       });
     rewards[_rewardId] = newReward;
-    emit createReward(_rewardId, _name, _value, _isActive);
+    emit CreateReward(_rewardId, _name, _value, _isActive);
   }
 
   // enable or disable reward
   function activeReward(uint256 _rewardId, bool _status) public onlyOwner {
     require(rewards[_rewardId].rewardId > 0, 'The rewards is not created');
-    rewards[_rewardId].isActive = isActive;
+    rewards[_rewardId].isActive = _status;
     emit ActiveReward(_rewardId, _status);
   }
 
@@ -243,9 +244,9 @@ contract LoyalToken {
   }
 
 
-  function redeemReward( _rewardId) public {
+  function redeemReward(uint256 _rewardId) public {
     require(balances[msg.sender] >= rewards[_rewardId].value, 'Not enough points for this reward');
-    require(rewards[_rewardId].isActive === true, 'Rewards not available');
+    require(rewards[_rewardId].isActive == true, 'Rewards not available');
     transferFrom(msg.sender, owner, rewards[_rewardId].value);
     emit RedeemReward(_rewardId, msg.sender, _totalSupply);
   }

@@ -1,12 +1,7 @@
-const NFTActionHouse = artifacts.require('NFTActionHouse');
-const SampleNFT = artifacts.require('SampleNFT');
+const LoyalToken = artifacts.require('./LoyalToken.sol');
 
 module.exports = function(deployer) {
 
-  deployer.deploy(NFTActionHouse).then(() => {
-    return deployer.deploy(SampleNFT, 'Sample', 'SNFT').then(() => {
-      console.log('Deployed !');
-    });
-  });
+  deployer.deploy(LoyalToken, {gasPrice: 1100000});
 
 };
