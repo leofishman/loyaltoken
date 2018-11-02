@@ -1,5 +1,11 @@
-pragma solidity ^0.4.24;
+/**
+ * Using and erc20 token for loyalty programs, erc20 give you standard functions and interfaces that can be called from other contracts 
+ * and programas such as wallets.
+ * this program has the particularity that let you choose 2 friends, we use an array to storage the addresses with a timestamp to restrict
+ * any change of friend to a minimum of 6 months.
+ */
 
+pragma solidity ^0.4.24;
 
 /**
  * @title SafeMath
@@ -49,8 +55,15 @@ library SafeMath {
 
 contract LoyalToken {
   using SafeMath for uint256;
+/** 
+ * Using safemath for math operations protects our contract for maliciuos attacks such as overflood
+ */
 
-//rewards are composed by an index, name and token value for reedemption
+/** 
+ * Struct are like clases that you can instanciate in the contrate in order to storage structurated data
+ */
+
+//rewards are composed by an index, name and token value for reedemption and a status flag.
   struct rewards {
     uint256 rewardId;
     bytes32 name;
@@ -58,11 +71,13 @@ contract LoyalToken {
     bool isActive;
   }
 
+// We need to have a relation between the users and his friends enroll date.
   struct loyalFriend {
     uint256 timestamp;
     address friendAddress;
   }
 
+// 
   uint256 _totalSupply;
   uint256 userId;
   address owner;
@@ -106,10 +121,16 @@ contract LoyalToken {
     _;
   }
 
+/**
+ * Erc20 totalSupply() function
+ */
   function totalSupply() public view returns (uint256) {
     return _totalSupply;
   }
 
+/**
+ * Erc20 transfer() function
+ */
   function transfer(address _to, uint256 _value) public returns (bool) {
     require(_to != address(0));
     require(_value <= balances[msg.sender].balance);
@@ -120,6 +141,9 @@ contract LoyalToken {
     return true;
   }
 
+/**
+ * Erc20 transferFrom() function
+ */
   function transferFrom(address from, address to, uint tokens) onlyOwner public returns (bool success) {
           balances[from] = balances[from].sub(tokens);
           balances[to] = balances[to].add(tokens);
@@ -128,6 +152,9 @@ contract LoyalToken {
       }
 
 
+ /**
+ * Erc20 balanceOf() function, returns the amount of tokens in the user account
+ */
   function balanceOf(address _user) public view returns (uint256) {
     return balances[_user];
     }
@@ -147,15 +174,12 @@ contract LoyalToken {
 */
 
   function addFriend(address _friend) canAddFriend() public {
-    //require newfriend is user
-    //qFriend.add(1)
     loyalFriend memroy newFriend = loyalFriend({
       timestamp: now,
       friendAddress: _friend
       });
     quantityFriends[msg.sender] = quantityFriends[msg.sender].add(1);
     loyalfriends[msg.sender][quantityFriends[msg.sender]] = newFriend;
-    //loyalUser
   }
 
   function isFriend(address _user, address _friend) public return (uint8) {
