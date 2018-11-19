@@ -1,5 +1,5 @@
 /**
- * Using and erc20 token for loyalty programs, erc20 give you standard functions and interfaces that can be called from other contracts 
+ * Using and erc20 token for loyalty programs, erc20 give you standard functions and interfaces that can be called from other contracts
  * and programas such as wallets.
  * this program has the particularity that let you choose 2 friends, we use an array to storage the addresses with a timestamp to restrict
  * any change of friend to a minimum of 6 months.
@@ -55,11 +55,11 @@ library SafeMath {
 
 contract LoyalToken {
   using SafeMath for uint256;
-/** 
+/**
  * Using safemath for math operations protects our contract for maliciuos attacks such as overflood
  */
 
-/** 
+/**
  * Struct are like clases that you can instanciate in the contrate in order to storage structurated data
  */
 
@@ -77,9 +77,8 @@ contract LoyalToken {
     address friendAddress;
   }
 
-// 
+//
   uint256 _totalSupply;
-//  uint256 userId;
   address owner;
   uint256 constant friendAddressLockingTime = 15780; // 6 months
 
@@ -91,7 +90,6 @@ contract LoyalToken {
 
 
   event Transfer(address indexed from, address indexed to, uint256 value);
- // event NewUser(uint256 indexed userId, uint8 friendsQuantity);
   event TransferToFriend(address user, address _friend, uint256 points);
   event RemoveFriend(address user, address friend);
   event CreateReward(uint256 indexed rewardId, bytes32 name, uint256 value, bool isActive);
@@ -103,11 +101,9 @@ contract LoyalToken {
       owner = msg.sender;
       bytes32 symbol = "LOY";
       bytes32 name = "My loyalty program with friends";
-      uint256 decimals = 18;
+      uint256 decimals = 0;
       _totalSupply = 1000000 * 10**uint(decimals);
       balances[owner] = _totalSupply;
-//      userId = 0;
-//      userId = newUser(msg.sender);
       emit Transfer(address(0), owner, _totalSupply);
 }
 
@@ -159,19 +155,6 @@ contract LoyalToken {
     return balances[_user];
     }
 
-/*
-  function newUser(address _loyalUser) public return (uint256) {
-    require(loyalUsers[msg.sender].userId == 0, 'User already in the program');
-
-    User memory newUser = User({
-        userId: userId.add(1),
-        friendsQuantity: 0
-        });
-      loyalUsers[_loyalUser] = newUser;
-      emit NewUser(loyalUser[_loyalUser].userId, loyalUser[_loyalUser].friendsQuantity);
-      return userId;
-    }
-*/
 
   function addFriend(address _friend) canAddFriend() public {
     loyalFriend memory newFriend = loyalFriend({
