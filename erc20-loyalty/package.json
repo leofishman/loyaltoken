@@ -1,0 +1,24 @@
+{
+  "name": "loyalToken",
+  "version": "1.0.0",
+  "description": "Loyalty program that allow to give points to friends",
+  "main": "index.js",
+  "scripts": {
+    "test": "test/loyalToken.js",
+    "compile": "rm -rf build && truffle compile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leofishman/loyalToken.git"
+  },
+  "author": "Leo Fishman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leofishman/loyalToken/issues"
+  },
+  "homepage": "https://github.com/leofishman/loyalToken/#readme",
+  "dependencies": {
+    "openzeppelin-solidity": "^1.10.0",
+    "truffle-assertions": "^0.6.3"
+  }
+}
