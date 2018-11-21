@@ -1,8 +1,8 @@
 /**
  * Using and erc20 token for loyalty programs, erc20 give you standard functions and interfaces that can be called from other contracts
  * and programas such as wallets.
- * this program has the particularity that let you choose 2 friends, we use an array to storage the addresses with a timestamp to restrict
  * any change of friend to a minimum of 6 months.
+ * this program has the particularity that let you choose up to 2 friends and allow to spend your tokens, we use an array to storage the addresses with a timestamp to restrict
  */
 
 pragma solidity ^0.4.24;
@@ -77,7 +77,7 @@ contract LoyalToken {
     address friendAddress;
   }
 
-//
+
   uint256 _totalSupply;
   address owner;
   uint256 constant friendAddressLockingTime = 15780; // 6 months
@@ -87,10 +87,11 @@ contract LoyalToken {
   mapping(address => loyalFriend[2]) loyalFriends; // friend for and address
   mapping(address => uint256) private balances;
   mapping(uint256 => reward) public rewards;
+  mapping (address => mapping (address => uint256)) internal allowed;
 
 
   event Transfer(address indexed from, address indexed to, uint256 value);
-  event TransferToFriend(address user, address _friend, uint256 points);
+  event Approval(address user, address _friend, uint256 points);
   event RemoveFriend(address user, address friend);
   event CreateReward(uint256 indexed rewardId, bytes32 name, uint256 value, bool isActive);
   event ActiveReward(uint256 indexed rewardId, bool indexed isActive);
@@ -124,12 +125,15 @@ contract LoyalToken {
     return _totalSupply;
   }
 
-/**
- * Erc20 transfer() function
- */
+
+  /**
+  * @dev Transfer token for a specified address
+  * @param _to The address to transfer to.
+  * @param _value The amount to be transferred.
+  */
   function transfer(address _to, uint256 _value) public returns (bool) {
-    require(_to != address(0));
     require(_value <= balances[msg.sender]);
+    require(_to != address(0));
 
     balances[msg.sender] = balances[msg.sender].sub(_value);
     balances[_to] = balances[_to].add(_value);
@@ -137,15 +141,30 @@ contract LoyalToken {
     return true;
   }
 
-/**
- * Erc20 transferFrom() function
- */
-  function transferFrom(address from, address to, uint tokens) onlyOwner public returns (bool success) {
-          balances[from] = balances[from].sub(tokens);
-          balances[to] = balances[to].add(tokens);
-          emit Transfer(from, to, tokens);
-          return true;
-      }
+  /**
+   * @dev Transfer tokens from one address to another
+   * @param _from address The address which you want to send tokens from
+   * @param _to address The address which you want to transfer to
+   * @param _value uint256 the amount of tokens to be transferred
+   */
+  function transferFrom(
+    address _from,
+    address _to,
+    uint256 _value
+  )
+    public
+    returns (bool)
+  {
+    require(_value <= balances[_from]);
+    require(_value <= allowed[_from][msg.sender]);
+    require(_to != address(0));
+
+    balances[_from] = balances[_from].sub(_value);
+    balances[_to] = balances[_to].add(_value);
+    allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+    emit Transfer(_from, _to, _value);
+    return true;
+  }
 
 
  /**
@@ -192,11 +211,92 @@ contract LoyalToken {
   }
 
 
-  function trasnferToFriend(address _friend, uint256 _points) public {
-    require(balances[msg.sender] >= _points, 'Not enough points to transfer');
-    require(isFriend(msg.sender, _friend) > 0, 'The address is not allowed to get points from you');
-    transfer(_friend, _points);
 
+  /**
+   * @dev Approve the passed address to spend the specified amount of tokens on behalf of msg.sender.
+   * Beware that changing an allowance with this method brings the risk that someone may use both the old
+   * and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this
+   * race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+   * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+   * @param _friend The address which will spend the funds.
+   * @param _value The amount of tokens to be spent.
+   */
+   function approve(
+     address _friend,
+     uint256 _value
+     )
+     public
+     returns (bool)
+     {
+      require(isFriend(msg.sender, _friend) > 0, 'The address is not allowed to get points from you');
+      allowed[msg.sender][_friend] = _value;
+      emit Approval(msg.sender, _friend, _value);
+      return true;
+    }
+
+  /**
+   * @dev Function to check the amount of tokens that an owner allowed to a spender.
+   * @param _owner address The address which owns the funds.
+   * @param _friend address The address which will spend the funds.
+   * @return A uint256 specifying the amount of tokens still available for the spender.
+   */
+  function allowance(
+    address _owner,
+    address _friend
+   )
+    public
+      view
+    returns (uint256)
+  {
+    return allowed[_owner][_friend];
+  }
+
+  /**
+   * @dev Increase the amount of tokens that an owner allowed to a spender.
+   * approve should be called when allowed[_friend] == 0. To increment
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   * @param _friend The address which will spend the funds.
+   * @param _addedValue The amount of tokens to increase the allowance by.
+   */
+  function increaseApproval(
+    address _friend,
+    uint256 _addedValue
+  )
+    public
+    returns (bool)
+  {
+    allowed[msg.sender][_friend] = (
+      allowed[msg.sender][_friend].add(_addedValue));
+      emit Approval(msg.sender, _friend, allowed[msg.sender][_friend]);
+    return true;
+  }
+
+  /**
+   * @dev Decrease the amount of tokens that an owner allowed to a spender.
+   * approve should be called when allowed[_friend] == 0. To decrement
+   * allowed value is better to use this function to avoid 2 calls (and wait until
+   * the first transaction is mined)
+   * From MonolithDAO Token.sol
+   * @param _friend The address which will spend the funds.
+   * @param _subtractedValue The amount of tokens to decrease the allowance by.
+   */
+  function decreaseApproval(
+    address _friend,
+    uint256 _subtractedValue
+  )
+    public
+    returns (bool)
+  {
+    uint256 oldValue = allowed[msg.sender][_friend];
+    if (_subtractedValue >= oldValue) {
+      allowed[msg.sender][_friend] = 0;
+    } else {
+      allowed[msg.sender][_friend] = oldValue.sub(_subtractedValue);
+    }
+    emit Approval(msg.sender, _friend, allowed[msg.sender][_friend]);
+    return true;
   }
 
   function createReward(uint256 _rewardId, bytes32 _name, uint256 _value, bool _isActive) public onlyOwner {
