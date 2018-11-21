@@ -4,6 +4,8 @@ const loyalToken = artifacts.require("LoyalToken");
 const truffleAssert = require('truffle-assertions');
 const { evmMine } = require('./helpers/evmMine');
 
+let revert = require('./helpers/assertRevert');
+
 contract('Loyal Token', (accounts) => {
 
   const Owner = accounts[0];
@@ -32,7 +34,7 @@ describe('rewards', async () => {
 
   it("Should not allow to create a reaward if rewardId exist", async function () {
     let tx = await contractToTest.createReward(rewardId, rewardName, 100, true);
-  //  await assertRevert(contractToTest.createReward(rewardId, "another reward", 100, true));
+    revert (contractToTest.createReward(rewardId, "another reward", 100, true));
 
   })
 
