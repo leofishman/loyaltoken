@@ -1,6 +1,5 @@
 const loyalToken = artifacts.require("LoyalToken");
-// import assertRevert from "./helpers/assertRevert";
-//const { assertRevert } = require('./helpers/assertThrow');
+
 const truffleAssert = require('truffle-assertions');
 const { evmMine } = require('./helpers/evmMine');
 
