@@ -100,8 +100,6 @@ contract LoyalToken {
 
   constructor() public {
       owner = msg.sender;
-      bytes32 symbol = "LOY";
-      bytes32 name = "My loyalty program with friends";
       uint256 decimals = 0;
       _totalSupply = 1000000 * 10**uint(decimals);
       balances[owner] = _totalSupply;
