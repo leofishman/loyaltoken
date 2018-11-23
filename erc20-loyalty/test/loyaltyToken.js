@@ -67,6 +67,15 @@ describe('rewards', async () => {
     });
   });
 
+  it("Should update a reward", async function () {
+    let tx = await contractToTest.createReward(rewardId, rewardName, 100, true);
+    let tx2 = await contractToTest.updateReward(rewardId, 150);
+
+    await truffleAssert.eventEmitted(tx2, 'UpdateReward', (ev) => {
+      return ev.rewardId == rewardId &&  ev.value == 150;
+    });
+  });
+
 });
 
 describe('total supply', function () {
