@@ -76,6 +76,33 @@ describe('rewards', async () => {
     });
   });
 
+  describe('reward redeeming', async function () {
+    let tx = await contractToTest.createReward(rewardId, rewardName, 100, true);
+    it("when reward is active and have balance, should redeem a reward", async function (){
+      let tx2 = await contractToTest.redeemReward(rewardId);
+      const totalSupply = await contractToTest.totalSupply();
+      const balance = await contractToTest.balanceOf(Owner);
+
+      assert.equal(balance, 1000000 - 100);
+
+      await truffleAssert.eventEmitted(tx2, 'RedeemReward', (ev) => {
+        return ev.rewardId == rewardId &&  ev.sender == Owner && ev.totalSupply == totalSupply;
+      });
+
+    });
+    it("when reward is active and dont have balance, should not redeem a reward", async function (){
+      revert (contractToTest.redeemReward(rewardId, { from: Bob }));
+      });
+    it("when reward is not active and have balance, should not redeem a reward", async function (){
+      let tx2 = await contractToTest.activeReward(rewardId, false);
+
+      revert (await contractToTest.redeemReward(rewardId));
+
+    });
+
+  });
+
+
 });
 
 describe('total supply', function () {
