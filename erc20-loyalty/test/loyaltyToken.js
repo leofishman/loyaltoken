@@ -11,6 +11,7 @@ contract('Loyal Token', (accounts) => {
   const Bob = accounts[1];
   const Carol = accounts[2];
   const David = accounts[3];
+  const Eric = accounts[4];
 
   const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -96,7 +97,7 @@ describe('rewards', async () => {
     it("when reward is not active and have balance, should not redeem a reward", async function (){
       let tx2 = await contractToTest.activeReward(rewardId, false);
 
-      revert (await contractToTest.redeemReward(rewardId));
+      revert ( contractToTest.redeemReward(rewardId));
 
     });
 
@@ -111,6 +112,25 @@ describe('total supply', function () {
 
       assert.equal(totalSupply, 1000000);
     });
+});
+
+describe('friendship managment', function () {
+  it('should allow friend', async function () {
+    let tx = await contractToTest.addFriend(Carol, { from: Bob});
+    assert.equal(await contractToTest.isFriend(Bob, Carol), 0);
+  });
+  it('should allow a second friend', async function () {
+    let tx = await contractToTest.addFriend(Carol, { from: Bob});
+    let tx2 = await contractToTest.addFriend(David, { from: Bob});
+    assert.equal(await contractToTest.isFriend(Bob, David), 1);
+  });
+  it('should not allow a third friend', async function () {
+    let tx = await contractToTest.addFriend(Carol, { from: Bob});
+
+    let tx2 = await contractToTest.addFriend(David, { from: Bob});
+    revert ( contractToTest.addFriend(Eric, { from: Bob}));
+
+  });
 });
 
 describe('balanceOf', function () {
@@ -176,14 +196,6 @@ describe('balanceOf', function () {
           revert (contractToTest.transfer(to, 100, { from: Owner }));
         });
       });
-    });
-
-    describe('friendship', function () {
-
-      it('add friend', async function () {
-
-      });
-
     });
 
 

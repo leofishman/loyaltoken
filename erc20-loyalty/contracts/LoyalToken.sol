@@ -84,7 +84,7 @@ contract LoyalToken {
 
   // each user can have 2 address that can transfer his points and can change those adddress after six months
   mapping(address => uint256) quantityFriends; //how many friends and address already have
-  mapping(address => loyalFriend[2]) loyalFriends; // friend for and address
+  mapping(address => loyalFriend[3]) loyalFriends; // friend for and address
   mapping(address => uint256) private balances;
   mapping(uint256 => reward) public rewards;
   mapping (address => mapping (address => uint256)) internal allowed;
@@ -172,24 +172,27 @@ contract LoyalToken {
     return balances[_user];
     }
 
+  function getQuantityFriends(address _user) public view returns (uint256) {
+    return quantityFriends[_user];
+  }
 
-  function addFriend(address _friend) canAddFriend() public {
+  function addFriend(address _friend)  public {
+    require(quantityFriends[msg.sender] < 2, 'friends limit reached');
     loyalFriend memory newFriend = loyalFriend({
       timestamp: now,
       friendAddress: _friend
       });
-    quantityFriends[msg.sender] = quantityFriends[msg.sender].add(1);
     loyalFriends[msg.sender][quantityFriends[msg.sender]] = newFriend;
+    quantityFriends[msg.sender] = quantityFriends[msg.sender].add(1);
   }
 
   function isFriend(address _user, address _friend) view public returns (uint256) {
-    require(quantityFriends[_user] > 0, "User has no friends");
+    require(loyalFriends[_user][0].timestamp > 0, "User has no friends");
       for (uint256 i = 0; i < loyalFriends[_user].length; i++) {
         if (loyalFriends[_user][i].friendAddress == _friend) {
           return i;
         }
       }
-      return 0;
   }
 
   function removeFriend(address _friend) public returns (bool) {
