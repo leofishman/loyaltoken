@@ -332,4 +332,9 @@ contract LoyalToken {
     emit RedeemReward(_rewardId, msg.sender, _totalSupply);
   }
 
+
+    function isRewardActive(uint256 _rewardId) public view returns (bool) {
+      return rewards[_rewardId].isActive ;
+    }
+
 }
