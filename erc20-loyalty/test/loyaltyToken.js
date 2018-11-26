@@ -77,7 +77,7 @@ describe('rewards', async () => {
     });
   });
 
-  describe('reward redeeming', async function () {
+  describe('Reward redeeming', async function () {
     let tx = await contractToTest.createReward(rewardId, rewardName, 100, true);
     it("when reward is active and have balance, should redeem a reward", async function (){
       let tx2 = await contractToTest.redeemReward(rewardId);
@@ -130,6 +130,10 @@ describe('friendship managment', function () {
     let tx2 = await contractToTest.addFriend(David, { from: Bob});
     revert ( contractToTest.addFriend(Eric, { from: Bob}));
 
+  });
+  it('Should not remove a friend if added less than six months ago', async function () {
+    let tx = await contractToTest.addFriend(Carol, { from: Bob});
+    revert (contractToTest.removeFriend(Carol, { from: Bob}));
   });
 });
 
