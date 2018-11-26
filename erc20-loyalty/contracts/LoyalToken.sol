@@ -198,14 +198,13 @@ contract LoyalToken {
   function removeFriend(address _friend) public returns (bool) {
     // require friend added longer than grace period
     if (loyalFriends[msg.sender][0].friendAddress == _friend) {
-      require(loyalFriends[msg.sender][1].timestamp < now.sub(friendAddressLockingTime));
+      require(loyalFriends[msg.sender][0].timestamp < now.sub(friendAddressLockingTime));
+      delete loyalFriends[msg.sender][0];
       loyalFriends[msg.sender][0] = loyalFriends[msg.sender][1];
       } else {
         require(loyalFriends[msg.sender][1].timestamp < now.sub(friendAddressLockingTime));
       }
-
-    require(loyalFriends[msg.sender][isFriend(msg.sender, _friend)].timestamp < now.sub(friendAddressLockingTime));
-    delete loyalFriends[msg.sender][isFriend(msg.sender, _friend)];
+    delete loyalFriends[msg.sender][1];
     quantityFriends[msg.sender] = quantityFriends[msg.sender].sub(1);
     emit RemoveFriend(msg.sender, _friend);
     return true;

@@ -3,6 +3,8 @@ const loyalToken = artifacts.require("LoyalToken");
 const truffleAssert = require('truffle-assertions');
 const { evmMine } = require('./helpers/evmMine');
 
+var truffleTestHelpers = require("./helpers/truffle-test-helpers");
+
 let revert = require('./helpers/assertRevert');
 
 contract('Loyal Token', (accounts) => {
@@ -114,7 +116,7 @@ describe('total supply', function () {
     });
 });
 
-describe('friendship managment', function () {
+describe('friendship managment', async function () {
   it('should allow friend', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
     assert.equal(await contractToTest.isFriend(Bob, Carol), 0);
@@ -135,6 +137,13 @@ describe('friendship managment', function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
     revert (contractToTest.removeFriend(Carol, { from: Bob}));
   });
+  it('Should remove a friend only if added more thatn six months ago', async function () {
+    let tx = await contractToTest.addFriend(Carol, { from: Bob});
+    const advancement = 15781;
+    const newBlock = await truffleTestHelpers.advanceTimeAndBlock(advancement);
+    assert(await contractToTest.removeFriend(Carol, { from: Bob}));
+  });
+
 });
 
 describe('balanceOf', function () {
