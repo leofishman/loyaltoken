@@ -5,7 +5,7 @@
  * this program has the particularity that let you choose up to 2 friends and allow to spend your tokens, we use an array to storage the addresses with a timestamp to restrict
  */
 
-pragma solidity ^0.5;
+pragma solidity ^0.4.24;
 
 /**
  * @title SafeMath
@@ -201,8 +201,8 @@ contract LoyalToken {
 
   function removeFriend(address _friend) public returns (bool) {
     // require friend added longer than grace period
-    if (loyalFriends[_user][_friend] < now.sub(friendAddressLockingTime) && loyalFriends[_user][_friend] > 0) {
-      loyalFriends[_user][_friend] = 0;
+    if (loyalFriends[msg.sender][_friend] < now.sub(friendAddressLockingTime) && loyalFriends[msg.sender][_friend] > 0) {
+      loyalFriends[msg.sender][_friend] = 0;
       quantityFriends[msg.sender] = quantityFriends[msg.sender].sub(1);
       emit RemoveFriend(msg.sender, _friend);
       return true;
@@ -222,14 +222,8 @@ contract LoyalToken {
    * @param _friend The address which will spend the funds.
    * @param _value The amount of tokens to be spent.
    */
-   function approve(
-     address _friend,
-     uint256 _value
-     )
-     public
-     returns (bool)
-     {
-      require(isFriend(msg.sender, _friend) > 0, 'The address is not allowed to get points from you');
+   function approve(address _friend, uint256 _value) public returns (bool) {
+      require(isFriend(msg.sender, _friend), 'The address is not allowed to get points from you');
       allowed[msg.sender][_friend] = _value;
       emit Approval(msg.sender, _friend, _value);
       return true;
@@ -336,7 +330,7 @@ contract LoyalToken {
   }
 
 
-    function isRewardActive(uint256 _rewardId) public view returns (bool) {
+  function isRewardActive(uint256 _rewardId) public view returns (bool) {
       return rewards[_rewardId].isActive ;
     }
 

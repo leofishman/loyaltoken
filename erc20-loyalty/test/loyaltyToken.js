@@ -119,12 +119,12 @@ describe('total supply', function () {
 describe('friendship managment', async function () {
   it('should allow friend', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
-    assert.equal(await contractToTest.isFriend(Bob, Carol), 0);
+    assert(await contractToTest.isFriend(Bob, Carol));
   });
   it('should allow a second friend', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
     let tx2 = await contractToTest.addFriend(David, { from: Bob});
-    assert.equal(await contractToTest.isFriend(Bob, David), 1);
+    assert(await contractToTest.isFriend(Bob, David));
   });
   it('should not allow a third friend', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
@@ -135,7 +135,8 @@ describe('friendship managment', async function () {
   });
   it('Should not remove a friend if added less than six months ago', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
-    revert (contractToTest.removeFriend(Carol, { from: Bob}));
+
+    assert.isFalse = (await contractToTest.removeFriend(Carol, { from: Bob}));
   });
   it('Should remove a friend only if added more thatn six months ago', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
@@ -143,6 +144,7 @@ describe('friendship managment', async function () {
     const newBlock = await truffleTestHelpers.advanceTimeAndBlock(advancement);
     assert(await contractToTest.removeFriend(Carol, { from: Bob}));
   });
+
   it('Should remove the first friend only if added more thatn six months ago', async function () {
     let tx = await contractToTest.addFriend(Carol, { from: Bob});
     let tx2 = await contractToTest.addFriend(David, { from: Bob});
@@ -150,8 +152,8 @@ describe('friendship managment', async function () {
     const newBlock = await truffleTestHelpers.advanceTimeAndBlock(advancement);
     let tx3 = await contractToTest.removeFriend(Carol, { from: Bob});
     let tx4 = await contractToTest.addFriend(Eric, { from: Bob});
-    assert.equal(await contractToTest.isFriend(Bob, David), 0);
-    assert.equal(await contractToTest.isFriend(Bob, Eric), 1);
+    assert(await contractToTest.isFriend(Bob, David));
+    assert(await contractToTest.isFriend(Bob, Eric));
 
 
   });
