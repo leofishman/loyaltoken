@@ -5,7 +5,7 @@
  * this program has the particularity that let you choose up to 2 friends and allow to spend your tokens, we use an array to storage the addresses with a timestamp to restrict
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.5;
 
 /**
  * @title SafeMath
@@ -54,7 +54,7 @@ library SafeMath {
 }
 
 contract LoyalToken {
-  using SafeMath for uint256;
+    using SafeMath for uint256;
 /**
  * Using safemath for math operations protects our contract for maliciuos attacks such as overflood
  */
@@ -71,12 +71,13 @@ contract LoyalToken {
     bool isActive;
   }
 
+/*
 // We need to have a relation between the users and his friends enroll date.
   struct loyalFriend {
     uint256 timestamp;
     address friendAddress;
   }
-
+*/
 
   uint256 _totalSupply;
   address owner;
@@ -84,7 +85,8 @@ contract LoyalToken {
 
   // each user can have 2 address that can transfer his points and can change those adddress after six months
   mapping(address => uint256) quantityFriends; //how many friends and address already have
-  mapping(address => loyalFriend[3]) loyalFriends; // friend for and address
+  //mapping(address => loyalFriend[3]) loyalFriends; // friend for and address
+  mapping(address => mapping (address => uint256)) public loyalFriends; //we map user address with his friend address and store the timestamp
   mapping(address => uint256) private balances;
   mapping(uint256 => reward) public rewards;
   mapping (address => mapping (address => uint256)) internal allowed;
@@ -178,36 +180,35 @@ contract LoyalToken {
 
   function addFriend(address _friend)  public {
     require(quantityFriends[msg.sender] < 2, 'friends limit reached');
-    loyalFriend memory newFriend = loyalFriend({
+    require(loyalFriends[msg.sender][_friend] == 0);
+  /*  loyalFriend memory newFriend = loyalFriend({
       timestamp: now,
       friendAddress: _friend
       });
-    loyalFriends[msg.sender][quantityFriends[msg.sender]] = newFriend;
+   */
     quantityFriends[msg.sender] = quantityFriends[msg.sender].add(1);
+    loyalFriends[msg.sender][_friend] = now;
+    allowance(msg.sender, _friend);
   }
 
-  function isFriend(address _user, address _friend) view public returns (uint256) {
-    require(loyalFriends[_user][0].timestamp > 0, "User has no friends");
-      for (uint256 i = 0; i < loyalFriends[_user].length; i++) {
-        if (loyalFriends[_user][i].friendAddress == _friend) {
-          return i;
-        }
-      }
+  function isFriend(address _user, address _friend) view public returns (bool) {
+    if (loyalFriends[_user][_friend] > 0) {
+      return true;
+    }  else {
+      return false;
+    }
   }
 
   function removeFriend(address _friend) public returns (bool) {
     // require friend added longer than grace period
-    if (loyalFriends[msg.sender][0].friendAddress == _friend) {
-      require(loyalFriends[msg.sender][0].timestamp < now.sub(friendAddressLockingTime));
-      delete loyalFriends[msg.sender][0];
-      loyalFriends[msg.sender][0] = loyalFriends[msg.sender][1];
-      } else {
-        require(loyalFriends[msg.sender][1].timestamp < now.sub(friendAddressLockingTime));
-      }
-    delete loyalFriends[msg.sender][1];
-    quantityFriends[msg.sender] = quantityFriends[msg.sender].sub(1);
-    emit RemoveFriend(msg.sender, _friend);
-    return true;
+    if (loyalFriends[_user][_friend] < now.sub(friendAddressLockingTime) && loyalFriends[_user][_friend] > 0) {
+      loyalFriends[_user][_friend] = 0;
+      quantityFriends[msg.sender] = quantityFriends[msg.sender].sub(1);
+      emit RemoveFriend(msg.sender, _friend);
+      return true;
+    }  else {
+      return false;
+    }
   }
 
 

@@ -143,7 +143,18 @@ describe('friendship managment', async function () {
     const newBlock = await truffleTestHelpers.advanceTimeAndBlock(advancement);
     assert(await contractToTest.removeFriend(Carol, { from: Bob}));
   });
+  it('Should remove the first friend only if added more thatn six months ago', async function () {
+    let tx = await contractToTest.addFriend(Carol, { from: Bob});
+    let tx2 = await contractToTest.addFriend(David, { from: Bob});
+    const advancement = 15781;
+    const newBlock = await truffleTestHelpers.advanceTimeAndBlock(advancement);
+    let tx3 = await contractToTest.removeFriend(Carol, { from: Bob});
+    let tx4 = await contractToTest.addFriend(Eric, { from: Bob});
+    assert.equal(await contractToTest.isFriend(Bob, David), 0);
+    assert.equal(await contractToTest.isFriend(Bob, Eric), 1);
 
+
+  });
 });
 
 describe('balanceOf', function () {
@@ -212,42 +223,48 @@ describe('balanceOf', function () {
     });
 
 
-/*
+
       describe('approve', function () {
-        describe('when the spender is not the zero address', function () {
-          const spender = Bob;
+        describe('when the Bob is not the zero address', function () {
 
           describe('when the sender has enough balance', function () {
             const amount = 100;
 
             it('emits an approval event', async function () {
-              const { logs } = await contractToTest.approve(spender, amount, { from: Owner });
+              let tx = await contractToTest.addFriend(Carol, { from: Bob});
+              await contractToTest.transfer(Bob, amount, { from: Owner });
+
+              let tx2 = await contractToTest.approve(Carol, amount, { from: Bob});
+/*              const { logs } = await contractToTest.approve(Carol, amount, { from: Bob });
 
               assert.equal(logs.length, 1);
               assert.equal(logs[0].event, 'Approval');
-              assert.equal(logs[0].args.Owner, Owner);
-              assert.equal(logs[0].args.spender, spender);
+              assert.equal(logs[0].args.Owner, Bob);
+              assert.equal(logs[0].args.Bob, Carol);
               assert(logs[0].args.value.eq(amount));
+*/
             });
-
+/*
             describe('when there was no approved amount before', function () {
               it('approves the requested amount', async function () {
-                await contractToTest.approve(spender, amount, { from: Owner });
+                let tx = await contractToTest.addFriend(Bob, { from: Owner});
+                await contractToTest.approve(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount);
               });
             });
 
-            describe('when the spender had an approved amount', function () {
+            describe('when the Bob had an approved amount', function () {
               beforeEach(async function () {
-                await contractToTest.approve(spender, 1, { from: Owner });
+                let tx = await contractToTest.addFriend(Bob, { from: Owner});
+                await contractToTest.approve(Bob, 1, { from: Owner });
               });
 
               it('approves the requested amount and replaces the previous one', async function () {
-                await contractToTest.approve(spender, amount, { from: Owner });
+                await contractToTest.approve(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount);
               });
             });
@@ -257,81 +274,83 @@ describe('balanceOf', function () {
             const amount = 101;
 
             it('emits an approval event', async function () {
-              const { logs } = await contractToTest.approve(spender, amount, { from: Owner });
+              const { logs } = await contractToTest.approve(Bob, amount, { from: Owner });
 
               assert.equal(logs.length, 1);
               assert.equal(logs[0].event, 'Approval');
               assert.equal(logs[0].args.Owner, Owner);
-              assert.equal(logs[0].args.spender, spender);
+              assert.equal(logs[0].args.Bob, Bob);
               assert(logs[0].args.value.eq(amount));
             });
 
             describe('when there was no approved amount before', function () {
               it('approves the requested amount', async function () {
-                await contractToTest.approve(spender, amount, { from: Owner });
+                await contractToTest.approve(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount);
               });
             });
 
-            describe('when the spender had an approved amount', function () {
+            describe('when the friend had an approved amount', function () {
               beforeEach(async function () {
-                await contractToTest.approve(spender, 1, { from: Owner });
+                await contractToTest.approve(Bob, 1, { from: Owner });
               });
 
               it('approves the requested amount and replaces the previous one', async function () {
-                await contractToTest.approve(spender, amount, { from: Owner });
+                await contractToTest.approve(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount);
               });
             });
+*/
           });
         });
-
-        describe('when the spender is the zero address', function () {
+/*
+        describe('when the friend is the zero address', function () {
           const amount = 100;
-          const spender = ZERO_ADDRESS;
+          const Bob = ZERO_ADDRESS;
 
           it('approves the requested amount', async function () {
-            await contractToTest.approve(spender, amount, { from: Owner });
+            await contractToTest.approve(Bob, amount, { from: Owner });
 
-            const allowance = await contractToTest.allowance(Owner, spender);
+            const allowance = await contractToTest.allowance(Owner, Bob);
             assert.equal(allowance, amount);
           });
 
           it('emits an approval event', async function () {
-            const { logs } = await contractToTest.approve(spender, amount, { from: Owner });
+            const { logs } = await contractToTest.approve(Bob, amount, { from: Owner });
 
             assert.equal(logs.length, 1);
             assert.equal(logs[0].event, 'Approval');
             assert.equal(logs[0].args.Owner, Owner);
-            assert.equal(logs[0].args.spender, spender);
+            assert.equal(logs[0].args.Bob, Bob);
             assert(logs[0].args.value.eq(amount));
           });
         });
+        */
       });
-*/
+
 
 
 /*
       describe('transfer from', function () {
-        const spender = Bob;
+        const Bob = Bob;
 
         describe('when the recipient is not the zero address', function () {
           const to = Carol;
 
-          describe('when the spender has enough approved balance', function () {
+          describe('when the Bob has enough approved balance', function () {
             beforeEach(async function () {
-              await contractToTest.approve(spender, 100, { from: Owner });
+              await contractToTest.approve(Bob, 100, { from: Owner });
             });
 
             describe('when the Owner has enough balance', function () {
               const amount = 100;
 
               it('transfers the requested amount', async function () {
-                await contractToTest.transferFrom(Owner, to, amount, { from: spender });
+                await contractToTest.transferFrom(Owner, to, amount, { from: Bob });
 
                 const senderBalance = await contractToTest.balanceOf(Owner);
                 assert.equal(senderBalance, 0);
@@ -340,15 +359,15 @@ describe('balanceOf', function () {
                 assert.equal(recipientBalance, amount);
               });
 
-              it('decreases the spender allowance', async function () {
-                await contractToTest.transferFrom(Owner, to, amount, { from: spender });
+              it('decreases the Bob allowance', async function () {
+                await contractToTest.transferFrom(Owner, to, amount, { from: Bob });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert(allowance.eq(0));
               });
 
               it('emits a transfer event', async function () {
-                const { logs } = await contractToTest.transferFrom(Owner, to, amount, { from: spender });
+                const { logs } = await contractToTest.transferFrom(Owner, to, amount, { from: Bob });
 
                 assert.equal(logs.length, 1);
                 assert.equal(logs[0].event, 'Transfer');
@@ -362,21 +381,21 @@ describe('balanceOf', function () {
               const amount = 101;
 
               it('reverts', async function () {
-                await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: spender }));
+                await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: Bob }));
               });
             });
           });
 
-          describe('when the spender does not have enough approved balance', function () {
+          describe('when the Bob does not have enough approved balance', function () {
             beforeEach(async function () {
-              await contractToTest.approve(spender, 99, { from: Owner });
+              await contractToTest.approve(Bob, 99, { from: Owner });
             });
 
             describe('when the Owner has enough balance', function () {
               const amount = 100;
 
               it('reverts', async function () {
-                await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: spender }));
+                await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: Bob }));
               });
             });
 
@@ -384,7 +403,7 @@ describe('balanceOf', function () {
               const amount = 101;
 
               it('reverts', async function () {
-                await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: spender }));
+                await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: Bob }));
               });
             });
           });
@@ -395,65 +414,65 @@ describe('balanceOf', function () {
           const to = ZERO_ADDRESS;
 
           beforeEach(async function () {
-            await contractToTest.approve(spender, amount, { from: Owner });
+            await contractToTest.approve(Bob, amount, { from: Owner });
           });
 
           it('reverts', async function () {
-            await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: spender }));
+            await assertRevert(contractToTest.transferFrom(Owner, to, amount, { from: Bob }));
           });
         });
       });
 */
 /*
       describe('decrease approval', function () {
-        describe('when the spender is not the zero address', function () {
-          const spender = recipient;
+        describe('when the Bob is not the zero address', function () {
+          const Bob = recipient;
 
           describe('when the sender has enough balance', function () {
             const amount = 100;
 
             it('emits an approval event', async function () {
-              const { logs } = await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+              const { logs } = await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
               assert.equal(logs.length, 1);
               assert.equal(logs[0].event, 'Approval');
               assert.equal(logs[0].args.Owner, Owner);
-              assert.equal(logs[0].args.spender, spender);
+              assert.equal(logs[0].args.Bob, Bob);
               assert(logs[0].args.value.eq(0));
             });
 
             describe('when there was no approved amount before', function () {
               it('keeps the allowance to zero', async function () {
-                await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+                await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, 0);
               });
             });
 
-            describe('when the spender had an approved amount', function () {
+            describe('when the Bob had an approved amount', function () {
               const approvedAmount = amount;
 
               beforeEach(async function () {
-                await contractToTest.approve(spender, approvedAmount, { from: Owner });
+                await contractToTest.approve(Bob, approvedAmount, { from: Owner });
               });
 
-              it('decreases the spender allowance subtracting the requested amount', async function () {
-                await contractToTest.decreaseApproval(spender, approvedAmount - 5, { from: Owner });
+              it('decreases the Bob allowance subtracting the requested amount', async function () {
+                await contractToTest.decreaseApproval(Bob, approvedAmount - 5, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, 5);
               });
 
               it('sets the allowance to zero when all allowance is removed', async function () {
-                await contractToTest.decreaseApproval(spender, approvedAmount, { from: Owner });
-                const allowance = await contractToTest.allowance(Owner, spender);
+                await contractToTest.decreaseApproval(Bob, approvedAmount, { from: Owner });
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, 0);
               });
 
               it('sets the allowance to zero when more than the full allowance is removed', async function () {
-                await contractToTest.decreaseApproval(spender, approvedAmount + 5, { from: Owner });
-                const allowance = await contractToTest.allowance(Owner, spender);
+                await contractToTest.decreaseApproval(Bob, approvedAmount + 5, { from: Owner });
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, 0);
               });
             });
@@ -463,57 +482,57 @@ describe('balanceOf', function () {
             const amount = 101;
 
             it('emits an approval event', async function () {
-              const { logs } = await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+              const { logs } = await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
               assert.equal(logs.length, 1);
               assert.equal(logs[0].event, 'Approval');
               assert.equal(logs[0].args.Owner, Owner);
-              assert.equal(logs[0].args.spender, spender);
+              assert.equal(logs[0].args.Bob, Bob);
               assert(logs[0].args.value.eq(0));
             });
 
             describe('when there was no approved amount before', function () {
               it('keeps the allowance to zero', async function () {
-                await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+                await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, 0);
               });
             });
 
-            describe('when the spender had an approved amount', function () {
+            describe('when the Bob had an approved amount', function () {
               beforeEach(async function () {
-                await contractToTest.approve(spender, amount + 1, { from: Owner });
+                await contractToTest.approve(Bob, amount + 1, { from: Owner });
               });
 
-              it('decreases the spender allowance subtracting the requested amount', async function () {
-                await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+              it('decreases the Bob allowance subtracting the requested amount', async function () {
+                await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, 1);
               });
             });
           });
         });
 
-        describe('when the spender is the zero address', function () {
+        describe('when the Bob is the zero address', function () {
           const amount = 100;
-          const spender = ZERO_ADDRESS;
+          const Bob = ZERO_ADDRESS;
 
           it('decreases the requested amount', async function () {
-            await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+            await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
-            const allowance = await contractToTest.allowance(Owner, spender);
+            const allowance = await contractToTest.allowance(Owner, Bob);
             assert.equal(allowance, 0);
           });
 
           it('emits an approval event', async function () {
-            const { logs } = await contractToTest.decreaseApproval(spender, amount, { from: Owner });
+            const { logs } = await contractToTest.decreaseApproval(Bob, amount, { from: Owner });
 
             assert.equal(logs.length, 1);
             assert.equal(logs[0].event, 'Approval');
             assert.equal(logs[0].args.Owner, Owner);
-            assert.equal(logs[0].args.spender, spender);
+            assert.equal(logs[0].args.Bob, Bob);
             assert(logs[0].args.value.eq(0));
           });
         });
@@ -522,38 +541,38 @@ describe('balanceOf', function () {
       describe('increase approval', function () {
         const amount = 100;
 
-        describe('when the spender is not the zero address', function () {
-          const spender = recipient;
+        describe('when the Bob is not the zero address', function () {
+          const Bob = recipient;
 
           describe('when the sender has enough balance', function () {
             it('emits an approval event', async function () {
-              const { logs } = await contractToTest.increaseApproval(spender, amount, { from: Owner });
+              const { logs } = await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
               assert.equal(logs.length, 1);
               assert.equal(logs[0].event, 'Approval');
               assert.equal(logs[0].args.Owner, Owner);
-              assert.equal(logs[0].args.spender, spender);
+              assert.equal(logs[0].args.Bob, Bob);
               assert(logs[0].args.value.eq(amount));
             });
 
             describe('when there was no approved amount before', function () {
               it('approves the requested amount', async function () {
-                await contractToTest.increaseApproval(spender, amount, { from: Owner });
+                await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount);
               });
             });
 
-            describe('when the spender had an approved amount', function () {
+            describe('when the Bob had an approved amount', function () {
               beforeEach(async function () {
-                await contractToTest.approve(spender, 1, { from: Owner });
+                await contractToTest.approve(Bob, 1, { from: Owner });
               });
 
-              it('increases the spender allowance adding the requested amount', async function () {
-                await contractToTest.increaseApproval(spender, amount, { from: Owner });
+              it('increases the Bob allowance adding the requested amount', async function () {
+                await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount + 1);
               });
             });
@@ -563,56 +582,56 @@ describe('balanceOf', function () {
             const amount = 101;
 
             it('emits an approval event', async function () {
-              const { logs } = await contractToTest.increaseApproval(spender, amount, { from: Owner });
+              const { logs } = await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
               assert.equal(logs.length, 1);
               assert.equal(logs[0].event, 'Approval');
               assert.equal(logs[0].args.Owner, Owner);
-              assert.equal(logs[0].args.spender, spender);
+              assert.equal(logs[0].args.Bob, Bob);
               assert(logs[0].args.value.eq(amount));
             });
 
             describe('when there was no approved amount before', function () {
               it('approves the requested amount', async function () {
-                await contractToTest.increaseApproval(spender, amount, { from: Owner });
+                await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount);
               });
             });
 
-            describe('when the spender had an approved amount', function () {
+            describe('when the Bob had an approved amount', function () {
               beforeEach(async function () {
-                await contractToTest.approve(spender, 1, { from: Owner });
+                await contractToTest.approve(Bob, 1, { from: Owner });
               });
 
-              it('increases the spender allowance adding the requested amount', async function () {
-                await contractToTest.increaseApproval(spender, amount, { from: Owner });
+              it('increases the Bob allowance adding the requested amount', async function () {
+                await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
-                const allowance = await contractToTest.allowance(Owner, spender);
+                const allowance = await contractToTest.allowance(Owner, Bob);
                 assert.equal(allowance, amount + 1);
               });
             });
           });
         });
 
-        describe('when the spender is the zero address', function () {
-          const spender = ZERO_ADDRESS;
+        describe('when the Bob is the zero address', function () {
+          const Bob = ZERO_ADDRESS;
 
           it('approves the requested amount', async function () {
-            await contractToTest.increaseApproval(spender, amount, { from: Owner });
+            await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
-            const allowance = await contractToTest.allowance(Owner, spender);
+            const allowance = await contractToTest.allowance(Owner, Bob);
             assert.equal(allowance, amount);
           });
 
           it('emits an approval event', async function () {
-            const { logs } = await contractToTest.increaseApproval(spender, amount, { from: Owner });
+            const { logs } = await contractToTest.increaseApproval(Bob, amount, { from: Owner });
 
             assert.equal(logs.length, 1);
             assert.equal(logs[0].event, 'Approval');
             assert.equal(logs[0].args.Owner, Owner);
-            assert.equal(logs[0].args.spender, spender);
+            assert.equal(logs[0].args.Bob, Bob);
             assert(logs[0].args.value.eq(amount));
           });
         });
