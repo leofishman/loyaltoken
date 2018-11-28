@@ -71,14 +71,6 @@ contract LoyalToken {
     bool isActive;
   }
 
-/*
-// We need to have a relation between the users and his friends enroll date.
-  struct loyalFriend {
-    uint256 timestamp;
-    address friendAddress;
-  }
-*/
-
   uint256 _totalSupply;
   address owner;
   uint256 constant friendAddressLockingTime = 15780; // 6 months
@@ -93,7 +85,7 @@ contract LoyalToken {
 
 
   event Transfer(address indexed from, address indexed to, uint256 value);
-  event Approval(address user, address _friend, uint256 points);
+  event Approval(address user, address friend, uint256 points);
   event RemoveFriend(address user, address friend);
   event CreateReward(uint256 indexed rewardId, bytes32 name, uint256 value, bool isActive);
   event ActiveReward(uint256 indexed rewardId, bool indexed isActive);
@@ -147,14 +139,7 @@ contract LoyalToken {
    * @param _to address The address which you want to transfer to
    * @param _value uint256 the amount of tokens to be transferred
    */
-  function transferFrom(
-    address _from,
-    address _to,
-    uint256 _value
-  )
-    public
-    returns (bool)
-  {
+  function transferFrom(address _from, address _to, uint256 _value ) public returns (bool) {
     require(_value <= balances[_from]);
     require(_value <= allowed[_from][msg.sender]);
     require(_to != address(0));
@@ -181,11 +166,6 @@ contract LoyalToken {
   function addFriend(address _friend)  public {
     require(quantityFriends[msg.sender] < 2, 'friends limit reached');
     require(loyalFriends[msg.sender][_friend] == 0);
-  /*  loyalFriend memory newFriend = loyalFriend({
-      timestamp: now,
-      friendAddress: _friend
-      });
-   */
     quantityFriends[msg.sender] = quantityFriends[msg.sender].add(1);
     loyalFriends[msg.sender][_friend] = now;
     allowance(msg.sender, _friend);
@@ -224,6 +204,9 @@ contract LoyalToken {
    */
    function approve(address _friend, uint256 _value) public returns (bool) {
       require(isFriend(msg.sender, _friend), 'The address is not allowed to get points from you');
+      if (_value > balanceOf(msg.sender)) {
+        _value = balanceOf(msg.sender);
+      }
       allowed[msg.sender][_friend] = _value;
       emit Approval(msg.sender, _friend, _value);
       return true;
@@ -235,14 +218,7 @@ contract LoyalToken {
    * @param _friend address The address which will spend the funds.
    * @return A uint256 specifying the amount of tokens still available for the spender.
    */
-  function allowance(
-    address _owner,
-    address _friend
-   )
-    public
-      view
-    returns (uint256)
-  {
+  function allowance(address _owner, address _friend) public view returns (uint256) {
     return allowed[_owner][_friend];
   }
 
@@ -322,11 +298,14 @@ contract LoyalToken {
   }
 
 
-  function redeemReward(uint256 _rewardId) public {
-    require(balances[msg.sender] >= rewards[_rewardId].value, 'Not enough points for this reward');
+  function redeemReward(uint256 _rewardId, address _loyalUser) public {
     require(rewards[_rewardId].isActive == true, 'Rewards not available');
-    transferFrom(msg.sender, owner, rewards[_rewardId].value);
-    emit RedeemReward(_rewardId, msg.sender, _totalSupply);
+    if(_loyalUser != msg.sender) {
+      require(isFriend(msg.sender, _loyalUser));
+    }
+    require(balances[_loyalUser] >= rewards[_rewardId].value, 'Not enough points for this reward');
+    transferFrom(_loyalUser, owner, rewards[_rewardId].value);
+    emit RedeemReward(_rewardId, _loyalUser, _totalSupply);
   }
 
 
